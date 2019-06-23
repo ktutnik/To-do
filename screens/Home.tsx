@@ -76,7 +76,7 @@ export default class HomeScreen extends React.Component<Props,State>{
     async deleteTodo(){
         console.log(this.state.selectedItem)
         if(this.state.selectedItem!=null)
-            await Axios.delete(apiUrl+"api/v1/todos/"+this.state.selectedItem,headerToken)
+            await Axios.delete(apiUrl+"api/v1/todos/"+this.state.todoList[this.state.selectedItem].id,headerToken)
             .then(result=>{
                 console.log(result.data)
                 this.getTodo()
