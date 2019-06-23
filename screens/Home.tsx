@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, View, Button, Image, ToastAndroid, StatusBar,Alert, ActivityIndicator, Modal } from 'react-native'
+import { Text, View, Button, Image, ToastAndroid, StatusBar,Alert, ActivityIndicator, Modal, CheckBox } from 'react-native'
 import { createDrawerNavigator, createAppContainer, NavigationScreenProp } from 'react-navigation';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Axios from 'axios';
@@ -9,7 +9,7 @@ import BlockBtn from '../components/block-btn'
 import SimpleTextInput from '../components/simple-text-input'
 import {styles} from '../styles'
 import ProfileScreen from './Profile'
-import { UserIsLogged, getToken } from '../async-storage';
+import { UserIsLogged, getToken, configOnlyIncomplete, getConfigOnlyIncomplete } from '../async-storage';
 import { apiUrl } from '../api-url';
 
 
@@ -30,6 +30,8 @@ interface State{
     selectedItem:number
     modalAddVisible:boolean
     modalEditVisible:boolean
+    modalSettingVisible:boolean
+    onlyShowIncomplete:boolean
     newTodo:string
     todoList:todo[]
 }
@@ -45,18 +47,21 @@ export default class HomeScreen extends React.Component<Props,State>{
             selectedItem:null,
             modalAddVisible:false,
             modalEditVisible:false,
+            modalSettingVisible:false,
+            onlyShowIncomplete:false,
             newTodo:'',
             todoList:[]
         }
     }
     //API function
     async getTodo(){
+        getConfigOnlyIncomplete()
         this.setState({isLoading:true,selectedItem:null})
-        if(headerToken==null){
-            const token= await getToken()
-            headerToken={headers: {Authorization:token}}
-            console.log(token)
-        }
+        //if(headerToken==null){
+        const token= await getToken()
+        headerToken={headers: {Authorization:token}}
+        console.log(token)
+        //}
         await Axios
         .get(apiUrl+"api/v1/todos?offset=0&limit=100",headerToken)
         .then(result=>{
@@ -102,9 +107,15 @@ export default class HomeScreen extends React.Component<Props,State>{
     }
     async completeTodo(todo:string,id:string){
         if(todo!=''&&id!=''){
-            Axios.put(apiUrl+"api/v1/todos/"+id,{todo:todo,completed:true},headerToken)
-            .then(result=>{console.log(result.data)})
-            .catch(error=>{console.log(error.response)})
+            Alert.alert("Are you sure?","once complete then its completely completed :P",[
+                {text:"Yes",onPress:()=>{
+                    Axios.put(apiUrl+"api/v1/todos/"+id,{todo:todo,completed:true},headerToken)
+                    .then(result=>{console.log(result.data);this.getTodo()})
+                    .catch(error=>{console.log(error.response)})
+                }},
+                {text:"Cancel",onPress:()=>{},style:'cancel'}
+            ])
+            
         }
     }
 
@@ -121,18 +132,28 @@ export default class HomeScreen extends React.Component<Props,State>{
     }
     componentWillMount(){
         this.getTodo()
+        
         StatusBar.setTranslucent(true)
     }
     render(){
         return(
                 <View style={styles.homeContainer}>
-                    <View style={{justifyContent:'flex-start',width:'100%', borderBottomColor: '#111',borderBottomWidth:2,flexDirection:'row',}}>
-                        <View style={{width:'50%'}}>
-                            <Text style={{fontWeight:'bold',fontSize:30,textAlign:'left',paddingLeft:-10}}>To Do List</Text>
+                    <View 
+                        style={styles.topHomeContainer}>
+                        <View 
+                            style={{width:'50%',flexDirection:'row'}}>
+                            <Text 
+                                style={styles.h1}>
+                                To Do List
+                            </Text>
                         </View>
-                        <View style={{flexDirection:'row',alignSelf:'center',width:'50%',justifyContent:'flex-end',paddingRight:10}}>
-                            <TouchableOpacity onPress={()=>this.getTodo()}>
-                                <Image style={{height:25,width:25,marginRight:10}} source={require('../icons/refresh.png')}/>
+                        <View 
+                            style={styles.todoActionContainer}>
+                            <TouchableOpacity 
+                                onPress={()=>this.getTodo()}>
+                                <Image 
+                                    style={styles.todoActionIcon} 
+                                    source={require('../icons/refresh.png')}/>
                             </TouchableOpacity>
                             <TouchableOpacity 
                                 onPress={()=>{
@@ -143,7 +164,17 @@ export default class HomeScreen extends React.Component<Props,State>{
                                         Alert.alert("Please select an item")
                                     }
                                 }}>
-                                <Image style={{height:25,width:25,marginRight:10}} source={require('../icons/edit.png')}/>
+                                <Image 
+                                    style={styles.todoActionIcon} 
+                                    source={require('../icons/edit.png')}/>
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                onPress={()=>{
+                                    this.setState({modalSettingVisible:true});
+                                }}>
+                                <Image 
+                                    style={[styles.todoActionIcon]} 
+                                    source={require('../icons/configuration.png')}/>
                             </TouchableOpacity>
                             <TouchableOpacity 
                                 onPress={()=>{
@@ -167,7 +198,9 @@ export default class HomeScreen extends React.Component<Props,State>{
                                     else
                                         Alert.alert("Please select an item")
                             }}>
-                                <Image style={{height:25,width:25}} source={require('../icons/delete.png')}/>
+                                <Image 
+                                    style={[styles.todoActionIcon,{marginRight:0}]} 
+                                    source={require('../icons/delete.png')}/>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -187,27 +220,37 @@ export default class HomeScreen extends React.Component<Props,State>{
                                                 this.setState({selectedItem:null});
                                             else
                                                 this.setState({selectedItem:index});
-                                }}>
-                                    <View style={styles.todoTextContainer}>
-                                        <Text style={this.state.selectedItem==index?styles.isSelected:styles.bold}>
-                                            <Text style={styles.bold}>No.</Text>{index+1}
+                                            }}>
+                                    <View 
+                                        style={styles.todoTextContainer}>
+                                        <Text 
+                                            style={this.state.selectedItem==index?styles.isSelected:styles.bold}>
+                                            <Text 
+                                                style={styles.bold}>No.</Text>{index+1}
                                         </Text>
                                         <Text>
-                                            <Text style={styles.bold}>Status : </Text>{item.completed?'Completed':'Incomplete'}
+                                            <Text 
+                                                style={styles.bold}>Status : </Text>{item.completed?'Completed':'Incomplete'}
                                         </Text>
                                         <Text>
-                                            <Text style={styles.bold}>Todo : </Text>{item.todo}
+                                            <Text 
+                                                style={styles.bold}>Todo : </Text>{item.todo}
                                         </Text>
                                     </View>
                                 </TouchableOpacity>
                             </View>) 
                         }
-                    />
+                    ></FlatList>
                     
-                    <View style={styles.todoAddContainer}>
-                        <TouchableOpacity activeOpacity={0.5}  onPress={()=>{this.setState({modalAddVisible:true});}}>
-                            <Image source={require('../icons/add.png')} style={styles.todoImageAdd}/>
-                        </TouchableOpacity>
+                    <View 
+                        style={styles.todoAddContainer}>
+                        <TouchableOpacity 
+                            activeOpacity={0.5}  
+                            onPress={()=>{this.setState({modalAddVisible:true});}}>
+                            <Image 
+                                source={require('../icons/add.png')} 
+                                style={styles.todoImageAdd}/>
+                            </TouchableOpacity>
                     </View>
 
                     <Modal
@@ -216,22 +259,23 @@ export default class HomeScreen extends React.Component<Props,State>{
                         transparent={true}
                         visible={this.state.modalAddVisible}
                         onRequestClose={() => {}}>
-                        <View style={{backgroundColor:'rgba(52, 52, 52, 0.8)',width:'100%',height:'100%'}}>
-                            <View style={{
-                                marginTop: '15%',
-                                height:'60%',
-                                backgroundColor:'#66bfff',
-                                width:'80%',
-                                alignSelf:'center',
-                                borderColor:'#111',
-                                borderWidth:2,
-                                borderRadius:5,
-                                padding:20
-                            }}>
-                                <Text style={{fontWeight:'bold',fontSize:30,textAlign:'left',paddingLeft:-10}}>Add To-do</Text>
-                                <SimpleTextInput placeholder="Enter to-do" placeholderTextColor='#111' onChangeText={text=>{this.setState({newTodo:text})}} />
-                                <BlockBtn title="Add to list" onPress={()=>{this.addTodo(this.state.newTodo);this.setState({modalAddVisible:false})}}/>
-                                <BlockBtn title="Cancel" onPress={()=>{this.setState({modalAddVisible:false})}}/>
+                        <View 
+                            style={styles.modalBackground}>
+                            <View style={styles.modalMainContainer}>
+                                <Text 
+                                    style={styles.h1}>Add To-do</Text>
+                                <SimpleTextInput 
+                                    placeholder="Enter to-do" 
+                                    placeholderTextColor='#111' 
+                                    onChangeText={text=>{this.setState({newTodo:text})}} />
+                                <BlockBtn 
+                                    title="Add to list" 
+                                    onPress={()=>{
+                                        this.addTodo(this.state.newTodo);
+                                        this.setState({modalAddVisible:false})}}/>
+                                <BlockBtn 
+                                    title="Cancel" 
+                                    onPress={()=>{this.setState({modalAddVisible:false})}}/>
                             </View>
                         </View>
                      </Modal>
@@ -242,36 +286,57 @@ export default class HomeScreen extends React.Component<Props,State>{
                         transparent={true}
                         visible={this.state.modalEditVisible}
                         onRequestClose={() => {}}>
-                        <View style={{backgroundColor:'rgba(52, 52, 52, 0.8)',width:'100%',height:'100%'}}>
-                            <View style={{
-                                marginTop: '15%',
-                                height:'60%',
-                                backgroundColor:'#66bfff',
-                                width:'80%',
-                                alignSelf:'center',
-                                borderColor:'#111',
-                                borderWidth:2,
-                                borderRadius:5,
-                                padding:20
-                            }}>
-                                <Text style={{fontWeight:'bold',fontSize:30,textAlign:'left',paddingLeft:-10}}>Edit To-do</Text>
-                                <SimpleTextInput value={this.state.newTodo} placeholder="Enter to-do" placeholderTextColor='#111' onChangeText={text=>{this.setState({newTodo:text})}} />
+                        <View 
+                            style={styles.modalBackground}>
+                            <View style={styles.modalMainContainer}>
+                                <Text 
+                                    style={styles.h1}>Edit To-do</Text>
+                                <SimpleTextInput 
+                                    value={this.state.newTodo} 
+                                    placeholder="Enter to-do" 
+                                    placeholderTextColor='#111' 
+                                    onChangeText={text=>{
+                                        this.setState({newTodo:text})}} />
                                 <BlockBtn title="Apply Changes" 
                                     onPress={()=>{
                                         this.setState({modalEditVisible:false})
                                         this.editTodo(this.state.newTodo,this.state.todoList[this.state.selectedItem].id)
                                         }}/>
+                                <BlockBtn title="Set To complete" 
+                                    onPress={()=>{
+                                        this.setState({modalEditVisible:false})
+                                        this.completeTodo(this.state.newTodo,this.state.todoList[this.state.selectedItem].id)
+                                        }}/>
                                 <BlockBtn title="Cancel" onPress={()=>{this.setState({modalEditVisible:false})}}/>
                             </View>
                         </View>
                      </Modal>
+                    
+                     <Modal
+                        //when setting icon pressed
+                        animationType="fade"
+                        transparent={true}
+                        visible={this.state.modalSettingVisible}
+                        onRequestClose={() => {}}>
+                        <View 
+                            style={styles.modalBackground}>
+                            <View style={styles.modalMainContainer}>
+                                <Text 
+                                    style={styles.h1}>Preferences</Text>
+                                <Text>Only Show Incomplete Todo (Not Yet implemented)</Text> 
+                                <CheckBox onValueChange={()=>{this.setState({onlyShowIncomplete:!this.state.onlyShowIncomplete})}}/>
+                                <BlockBtn 
+                                    title="OK" 
+                                    onPress={()=>{
+                                        configOnlyIncomplete(this.state.onlyShowIncomplete?'yes':'no')
+                                        this.setState({modalSettingVisible:false})}}/>
+                                <BlockBtn 
+                                    title="Cancel" 
+                                    onPress={()=>{this.setState({modalSettingVisible:false})}}/>
+                            </View>
+                        </View>
+                     </Modal>
                 </View>
-                //tomorrow todo 
-                //improve layout
-                //add todo screen
-                //edit todo screen
-                //delete
-                //make getUId api
         );
     }
 }

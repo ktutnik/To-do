@@ -1,17 +1,24 @@
 import React from 'react';
-import { StyleSheet, Text, View, Button, Image, Alert } from 'react-native';
-import {createStackNavigator,createAppContainer,NavigationScreenProp, createDrawerNavigator, DrawerItems, NavigationActions, StackActions} from 'react-navigation'
-import axios from 'axios'
+import { Text, View, Button, Image, Alert } from 'react-native';
+import {
+  createStackNavigator,
+  createAppContainer,
+  NavigationScreenProp, 
+  createDrawerNavigator, 
+  DrawerItems, 
+  NavigationActions, 
+  StackActions} 
+  from 'react-navigation'
 
 
-import {UserIsLogged, SetUserLogged} from './async-storage'
+import {UserIsLogged, SetUserLogged, clearUserCredentials} from './async-storage'
 import LoginScreen from './screens/Login'
 import RegisterScreen from './screens/Register'
 import HomeScreen from './screens/Home'
 import ProfileScreen from './screens/Profile'
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
-
+//every Toast can be replaced with Alert because toast isn't available on IOS
 
 interface Props{
   navigation : NavigationScreenProp<any,any>
@@ -49,6 +56,8 @@ interface State{
     return (<View/>)
   }
 }
+
+//layout for the drawer
 const DrawerContent = (props) => (
   <View>
     <View 
@@ -59,7 +68,11 @@ const DrawerContent = (props) => (
         justifyContent: 'center',
       }}
     > 
-      <Text style={{ color: 'white', fontSize: 30 ,marginBottom:5}}>
+      <Text 
+        style={{
+          color: 'white', 
+          fontSize: 30 ,
+          marginBottom:5}}>
         Do todo!
       </Text>
       <Button title="log out"
@@ -73,6 +86,7 @@ const DrawerContent = (props) => (
             {
               text:"Yes",
               onPress:()=>{
+                clearUserCredentials();
                 SetUserLogged(false);
                 props.navigation.dispatch(StackActions.reset({
                   index:0,
@@ -132,7 +146,6 @@ const AppNav=createStackNavigator({
 
 export default createAppContainer(AppNav)
 
-//
 
 
 

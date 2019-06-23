@@ -61,3 +61,27 @@ export async function GetEmail(){
         console.log(error)
     }
 }
+
+export async function clearUserCredentials(){
+    try{
+        await AsyncStorage.clear()
+    }catch(error){
+
+    }
+}
+
+export async function configOnlyIncomplete(preference:string){
+    try{
+        await AsyncStorage.setItem('onlyIncomplete',preference)
+    }catch(error){
+        console.log(error)
+    }
+}
+export async function getConfigOnlyIncomplete(){
+    try{
+        const value =await AsyncStorage.getItem('onlyIncomplete')
+        return value
+    }catch(error){
+        console.log(error)
+    }
+}
