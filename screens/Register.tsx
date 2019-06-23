@@ -38,7 +38,9 @@ export default class RegisterScreen extends React.Component<Props,State>{
             //api post request to plumier123.herokuapp.com for register
             await axios
                 .post(apiUrl+"api/v1/users",{
-                    name:this.state.name,email:this.state.email,password:this.state.password
+                    name:this.state.name,
+                    email:this.state.email.toLowerCase(),
+                    password:this.state.password
                 }).then(data=>{
                     ToastAndroid.showWithGravity("Success, please login",ToastAndroid.LONG,ToastAndroid.CENTER); 
                     //navigate to login screen
