@@ -5,7 +5,7 @@ import Axios from 'axios';
 
 import {apiUrl} from '../api-url'
 import SimpleTextInput from '../components/simple-text-input'
-import {storeToken,storeUserId,getToken,getUserId,SetUserLogged, SetEmail} from '../async-storage'
+import {storeToken,storeUserId,getToken,getUserId,SetUserLogged, SetEmail, configOnlyIncomplete} from '../async-storage'
 import BlockBtn from '../components/block-btn'
 import {styles} from '../styles'
 import { any } from 'prop-types';
@@ -46,6 +46,7 @@ export default class LoginScreen extends React.Component<Props,State>{
                     storeToken(result.data.token)
                     SetEmail(this.state.email)
                     SetUserLogged(true)
+                    configOnlyIncomplete('yes')
                     console.log(result.data.token)
                     ToastAndroid.showWithGravity("Login Succes",ToastAndroid.LONG,ToastAndroid.CENTER)
                     this.props.navigation.dispatch(StackActions.reset({

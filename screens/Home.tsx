@@ -55,7 +55,7 @@ export default class HomeScreen extends React.Component<Props,State>{
     }
     //API function
     async getTodo(){
-        getConfigOnlyIncomplete()
+        const onlyIncomplete=await getConfigOnlyIncomplete()
         this.setState({isLoading:true,selectedItem:null})
         //if(headerToken==null){
         const token= await getToken()
@@ -66,7 +66,16 @@ export default class HomeScreen extends React.Component<Props,State>{
         .get(apiUrl+"api/v1/todos?offset=0&limit=100",headerToken)
         .then(result=>{
             console.log(result.data)
-            this.setState({todoList:result.data})
+            if(onlyIncomplete=='no'){
+                this.setState({todoList:result.data,onlyShowIncomplete:false})
+            }else{
+                let todoIncompleteList:todo[]=[]
+                result.data.forEach(todo=>{
+                    if(!todo.completed)
+                        todoIncompleteList.push(todo)
+                })
+                this.setState({todoList:todoIncompleteList,onlyShowIncomplete:true})
+            }
         })
         .catch(error=>{
             console.log(error.response)
@@ -107,7 +116,7 @@ export default class HomeScreen extends React.Component<Props,State>{
     }
     async completeTodo(todo:string,id:string){
         if(todo!=''&&id!=''){
-            Alert.alert("Are you sure?","once complete then its completely completed :P",[
+            Alert.alert("Are you sure?","once complete then it's completely completed :P",[
                 {text:"Yes",onPress:()=>{
                     Axios.put(apiUrl+"api/v1/todos/"+id,{todo:todo,completed:true},headerToken)
                     .then(result=>{console.log(result.data);this.getTodo()})
@@ -132,7 +141,6 @@ export default class HomeScreen extends React.Component<Props,State>{
     }
     componentWillMount(){
         this.getTodo()
-        
         StatusBar.setTranslucent(true)
     }
     render(){
@@ -232,10 +240,12 @@ export default class HomeScreen extends React.Component<Props,State>{
                                             <Text 
                                                 style={styles.bold}>Status : </Text>{item.completed?'Completed':'Incomplete'}
                                         </Text>
-                                        <Text>
+                                        {/* <Text>
                                             <Text 
-                                                style={styles.bold}>Todo : </Text>{item.todo}
-                                        </Text>
+                                                style={[styles.bold]}>Todo : 
+                                            </Text>       
+                                        </Text> */}
+                                        <Text>{item.todo}</Text>
                                     </View>
                                 </TouchableOpacity>
                             </View>) 
@@ -288,7 +298,7 @@ export default class HomeScreen extends React.Component<Props,State>{
                         onRequestClose={() => {}}>
                         <View 
                             style={styles.modalBackground}>
-                            <View style={styles.modalMainContainer}>
+                            <View style={[styles.modalMainContainer,{height:'70%'}]}>
                                 <Text 
                                     style={styles.h1}>Edit To-do</Text>
                                 <SimpleTextInput 
@@ -323,13 +333,14 @@ export default class HomeScreen extends React.Component<Props,State>{
                             <View style={styles.modalMainContainer}>
                                 <Text 
                                     style={styles.h1}>Preferences</Text>
-                                <Text>Only Show Incomplete Todo (Not Yet implemented)</Text> 
-                                <CheckBox onValueChange={()=>{this.setState({onlyShowIncomplete:!this.state.onlyShowIncomplete})}}/>
+                                <Text>Only Show Incomplete Todo </Text> 
+                                <CheckBox value={this.state.onlyShowIncomplete} onValueChange={()=>{this.setState({onlyShowIncomplete:!this.state.onlyShowIncomplete})}}/>
                                 <BlockBtn 
                                     title="OK" 
                                     onPress={()=>{
                                         configOnlyIncomplete(this.state.onlyShowIncomplete?'yes':'no')
-                                        this.setState({modalSettingVisible:false})}}/>
+                                        this.setState({modalSettingVisible:false})
+                                        this.getTodo()}}/>
                                 <BlockBtn 
                                     title="Cancel" 
                                     onPress={()=>{this.setState({modalSettingVisible:false})}}/>
