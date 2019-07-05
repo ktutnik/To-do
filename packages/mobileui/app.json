@@ -1,10 +1,7 @@
 {
   "expo": {
-    "androidStatusBar": {
-      "backgroundColor": "#111"
-    },
-    "name": "plumier-to-do",
-    "slug": "plumier-to-do",
+    "name": "Todo",
+    "slug": "mobileui",
     "privacy": "public",
     "sdkVersion": "33.0.0",
     "platforms": [

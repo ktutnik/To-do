@@ -46,7 +46,7 @@ export default class LoginScreen extends React.Component<Props,State>{
                     storeToken(result.data.token)
                     SetEmail(this.state.email)
                     SetUserLogged(true)
-                    configOnlyIncomplete('yes')
+                    configOnlyIncomplete('no')
                     console.log(result.data.token)
                     ToastAndroid.showWithGravity("Login Succes",ToastAndroid.LONG,ToastAndroid.CENTER)
                     this.props.navigation.dispatch(StackActions.reset({

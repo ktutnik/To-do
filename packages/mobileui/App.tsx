@@ -17,6 +17,7 @@ import RegisterScreen from './screens/Register'
 import HomeScreen from './screens/Home'
 import ProfileScreen from './screens/Profile'
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { apiUrl } from './api-url';
 
 //every Toast can be replaced with Alert because toast isn't available on IOS
 
@@ -37,23 +38,34 @@ interface State{
     let isLogged=await UserIsLogged()
     //To dispatch this screen so the user cannot go back to login screen if already logged
     //and go to Home screen
-    if(isLogged){
-      this.props.navigation.dispatch(StackActions.reset({
-        index:0,
-        actions: [NavigationActions.navigate({ routeName: 'Home' })]
-      }))
-    }else{
-      this.props.navigation.dispatch(StackActions.reset({
-        index:0,
-        actions: [NavigationActions.navigate({ routeName: 'Login' })]
-      }))
+    if(apiUrl!=""){
+      if(isLogged){
+        this.props.navigation.dispatch(StackActions.reset({
+          index:0,
+          actions: [NavigationActions.navigate({ routeName: 'Home' })]
+        }))
+      }else{
+        this.props.navigation.dispatch(StackActions.reset({
+          index:0,
+          actions: [NavigationActions.navigate({ routeName: 'Login' })]
+        }))
+      }
     }
   }
   componentWillMount() {
     this.isLogin()
   }
   render(){
-    return (<View/>)
+    return (
+    <View style={{
+        alignContent:"center",
+        alignSelf:"center",
+        height:'100%',
+        paddingTop:'50%'}}>
+      <Text>
+        Please open packages/mobileui/api-url.ts to continue
+      </Text>
+    </View>)
   }
 }
 
